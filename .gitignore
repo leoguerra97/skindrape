@@ -2,3 +2,5 @@
 /image_storage/
 /old/
 /test_images/
+config.json
+.idea/

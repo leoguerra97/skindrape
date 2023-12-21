@@ -1,6 +1,5 @@
+import json
 # Configuration settings
-
-API_KEY = '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'
 IMAGE_FOLDER = '/Users/Leonardo/Desktop/Skindrape/skindrape/image_storage'  # Path to the folder to save images and responses
 
 MODEL = "gpt-4-vision-preview"
@@ -24,3 +23,19 @@ PROMPT = "Analyse the image of a clothing item. And characterise it in the follo
          "\nZIP (zip yes ZS, zip no ZN)" \
          "\nBUTTONS (buttons yes BS, buttons no BN)" \
          "\nThen generate a short description of the article suited to be published on an online store. Finally also give an Italian translation of the description."
+
+
+def load_secret_key(filename='./../config.json'):
+    try:
+        with open(filename, 'r') as file:
+            config = json.load(file)
+            return config.get('secret_key')
+    except FileNotFoundError:
+        print(f"Configuration file '{filename}' not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error decoding JSON from the configuration file '{filename}'.")
+        return None
+
+# Usage
+API_KEY = load_secret_key()
