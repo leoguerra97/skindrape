@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import './ImageGallery.css';
 
-
 Modal.setAppElement('#root');
 
 const ImageGallery = () => {
     const [images, setImages] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedResponse, setSelectedResponse] = useState(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
 
     useEffect(() => {
@@ -20,13 +20,18 @@ const ImageGallery = () => {
         fetchImages();
     }, []);
 
-    const openModal = (image) => {
+    const openModal = async (image) => {
         setSelectedImage(image);
+        // Fetch the response content
+        const response = await fetch(image.response_path);
+        const responseData = await response.json();
+        setSelectedResponse(responseData);
         setModalIsOpen(true);
     };
 
     const closeModal = () => {
         setModalIsOpen(false);
+        setSelectedResponse(null); // Clear the response on modal close
     };
 
     return (
@@ -35,8 +40,7 @@ const ImageGallery = () => {
             <div className="image-grid">
                 {images.map((image, index) => (
                     <div key={index} className="image-item" onClick={() => openModal(image)}>
-                        {/* Display standard icon and filename */}
-                        <img src="path_to_standard_icon" alt="Icon" style={{ maxWidth: '50px', cursor: 'pointer' }} />
+                        <img src={image.image_path} alt="Image" style={{ maxWidth: '50px', cursor: 'pointer' }} />
                         <p>{image.image_name}</p> {/* Assuming image_name is the filename */}
                     </div>
                 ))}
@@ -49,12 +53,11 @@ const ImageGallery = () => {
                 // Add custom styling or className here
             >
                 <button onClick={closeModal}>Close</button>
-                {selectedImage && (
+                {selectedImage && selectedResponse && (
                     <div>
                         <img src={selectedImage.image_path} alt="Selected" style={{ maxWidth: '300px' }} />
                         <div className="response">
-                            {/* Display the content from the JSON response */}
-                            <pre>{JSON.stringify(selectedImage.response, null, 2)}</pre>
+                            <pre>{JSON.stringify(selectedResponse, null, 2)}</pre>
                         </div>
                     </div>
                 )}
