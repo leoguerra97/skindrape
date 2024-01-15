@@ -1,6 +1,10 @@
 import json
+import os
+
 # Configuration settings
-IMAGE_FOLDER = '/Users/Leonardo/Desktop/Skindrape/skindrape/image_storage'  # Path to the folder to save images and responses
+
+# Directory where images and responses are stored
+IMAGE_FOLDER = os.path.join(os.getcwd(), '../image_storage')
 
 MODEL = "gpt-4-vision-preview"
 

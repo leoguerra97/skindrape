@@ -1,6 +1,7 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from image_processing import encode_image_to_base64, process_image
 from storage import save_image, save_response, get_images, rename_image
+from config import IMAGE_FOLDER
 
 def configure_routes(app):
 
@@ -26,3 +27,11 @@ def configure_routes(app):
     def list_images():
         images = get_images()
         return jsonify(images)
+
+    @app.route('/images/<filename>', methods=['GET'])
+    def get_image(filename):
+        return send_from_directory(IMAGE_FOLDER, filename)
+
+    @app.route('/responses/<filename>', methods=['GET'])
+    def get_response(filename):
+        return send_from_directory(IMAGE_FOLDER, filename)

@@ -12,26 +12,56 @@ const ImageGallery = () => {
 
     useEffect(() => {
         const fetchImages = async () => {
-            const response = await fetch('http://127.0.0.1:5000/images');
-            const data = await response.json();
-            setImages(data);
+            try {
+                const response = await fetch('http://127.0.0.1:5000/images');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Received data:", data);
+
+                const updatedData = data.map(item => {
+                    // Extract the filename from the absolute path
+                    const imageName = item.image_path.split('/').pop();
+                    const responseName = item.response_path.split('/').pop();
+
+                    return {
+                        ...item,
+                        image_path: `http://127.0.0.1:5000/images/${encodeURIComponent(imageName)}`,
+                        response_path: `http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`
+                    };
+                });
+
+                setImages(updatedData);
+            } catch (error) {
+                console.error('Error fetching images:', error);
+            }
         };
+
 
         fetchImages();
     }, []);
 
     const openModal = async (image) => {
-        setSelectedImage(image);
-        // Fetch the response content
+    setSelectedImage(image);
+    try {
         const response = await fetch(image.response_path);
+        console.log("Fetch response: ", response); // Log the full response
+        if (!response.ok) {
+            console.error('Failed to fetch image response:', response.statusText);
+            return;
+        }
         const responseData = await response.json();
         setSelectedResponse(responseData);
-        setModalIsOpen(true);
+    } catch (error) {
+        console.error('Error fetching response data:', error);
+    }
+    setModalIsOpen(true);
     };
 
     const closeModal = () => {
         setModalIsOpen(false);
-        setSelectedResponse(null); // Clear the response on modal close
+        setSelectedResponse(null);
     };
 
     return (
@@ -57,7 +87,8 @@ const ImageGallery = () => {
                     <div>
                         <img src={selectedImage.image_path} alt="Selected" style={{ maxWidth: '300px' }} />
                         <div className="response">
-                            <pre>{JSON.stringify(selectedResponse, null, 2)}</pre>
+                            {/* Display the 'content' message */}
+                            <p>{selectedResponse.response.choices[0].message.content}</p>
                         </div>
                     </div>
                 )}
