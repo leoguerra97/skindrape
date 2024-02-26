@@ -9,6 +9,8 @@
     display: flex;
     align-items: center;
     cursor: pointer;
+    padding: 10px;
+    margin: 10px;
 }
 
 .modal {
@@ -31,4 +33,20 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+}
+
+.shirtStyle {
+    border: 2px solid blue;
+}
+
+.pantsStyle {
+border: 2px solid green;
+}
+
+.sweaterStyle {
+border: 2px solid orange;
+}
+
+.defaultStyle {
+border: 2px solid gray; /* Default style if category is unknown or not specified */
 }

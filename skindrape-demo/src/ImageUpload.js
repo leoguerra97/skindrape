@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 
+function formatText(text) {
+    return text.split('\n').map((line, index) => (
+        <p key={index}>{line}</p>
+    ));
+}
+
 const ImageUpload = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
@@ -82,8 +88,8 @@ const ImageUpload = () => {
 
             {apiContent && (
                 <div>
-                    <h3>API Content:</h3>
-                    <p>{apiContent}</p>
+                    <h3>Clothing Article Classification:</h3>
+                    <p>{formatText(apiContent)}</p>
                 </div>
             )}
         </div>
