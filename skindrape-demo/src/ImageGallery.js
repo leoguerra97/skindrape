@@ -31,15 +31,18 @@ function parseCategory(responseData) {
 
 function getCategoryStyle(category) {
     switch (category) {
-        case 'T-Shirt':
+        case 'T-Shirt' :
             return 'shirtStyle'; // CSS class or style object
         case 'FE':
+            return 'sweaterStyle';
+        case 'SW':
             return 'pantsStyle';
+        case 'CA':
+            return 'shirtStyle';
         default:
             return 'defaultStyle';
     }
 }
-
 
 
 const ImageGallery = () => {
@@ -49,35 +52,42 @@ const ImageGallery = () => {
     const [modalIsOpen, setModalIsOpen] = useState(false);
 
     useEffect(() => {
-        const fetchImages = async () => {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/images');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log("Received data:", data);
-
-                const updatedData = data.map(item => {
-                    // Extract the filename from the absolute path
-                    const imageName = item.image_path.split('/').pop();
-                    const responseName = item.response_path.split('/').pop();
-
-                    return {
-                        ...item,
-                        image_path: `http://127.0.0.1:5000/images/${encodeURIComponent(imageName)}`,
-                        response_path: `http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`
-                    };
-                });
-
-                setImages(updatedData);
-            } catch (error) {
-                console.error('Error fetching images:', error);
+    const fetchImages = async () => {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/images');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        };
+            const data = await response.json();
+            console.log("Received data:", data);
 
+            const updatedData = await Promise.all(data.map(async item => {
+                // Extract the filename from the absolute path
+                const imageName = item.image_path.split('/').pop();
+                const responseName = item.response_path.split('/').pop();
 
-        fetchImages();
+                // Fetch the response for the image
+                const response = await fetch(`http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`);
+                const responseData = await response.json();
+
+                // Parse the category from the response
+                const category = parseCategory(responseData);
+
+                return {
+                    ...item,
+                    image_path: `http://127.0.0.1:5000/images/${encodeURIComponent(imageName)}`,
+                    response_path: `http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`,
+                    category: category
+                };
+            }));
+
+            setImages(updatedData);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+    };
+
+    fetchImages();
     }, []);
 
     const openModal = async (image) => {

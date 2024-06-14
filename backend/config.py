@@ -5,6 +5,7 @@ import os
 
 # Directory where images and responses are stored
 IMAGE_FOLDER = os.path.join(os.getcwd(), '../image_storage')
+MODEL_PATH = "/Users/Leonardo/Desktop/Skindrape/skindrape/backend/IS_Net/saved_models/isnet-general-use.pth"
 
 MODEL = "gpt-4-vision-preview"
 

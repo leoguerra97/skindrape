@@ -8,7 +8,7 @@ from config import IMAGE_FOLDER
 from werkzeug.utils import secure_filename
 import json
 
-def save_image(image_file):
+def create_unique_id_for_image(image_file):
     if not os.path.exists(IMAGE_FOLDER):
         os.makedirs(IMAGE_FOLDER)
 
@@ -18,8 +18,7 @@ def save_image(image_file):
     filename = secure_filename(f"{timestamp}_{unique_id}_{image_file.filename}")
     image_path = os.path.join(IMAGE_FOLDER, filename)
 
-    # Save the image
-    image_file.save(image_path)
+
     return image_path
 
 def rename_image(original_path, new_name):
