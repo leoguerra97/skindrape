@@ -73,13 +73,13 @@ const ImageUpload = () => {
         }
     };
 
-    return (
+    return  (
         <div>
             <h2>Image Upload</h2>
             <input type="file" onChange={handleFileChange} multiple />
             <button onClick={handleUpload}>Upload</button>
             {uploadStatus && <p>{uploadStatus}</p>}
-            {isLoading && <p>Loading...</p>} {/* Loading Indicator */}
+            {isLoading && <p>Loading...</p>}
 
             {imagePreviews.map((preview, index) => (
                 <div key={index}>
@@ -91,7 +91,7 @@ const ImageUpload = () => {
             {apiContents.map((content, index) => (
                 <div key={index}>
                     <h3>Clothing Article Classification:</h3>
-                    <p>{formatText(content)}</p>
+                    {formatText(content)}
                 </div>
             ))}
         </div>

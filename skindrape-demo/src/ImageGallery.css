@@ -1,4 +1,5 @@
 /* ImageGallery.css */
+
 .image-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -7,10 +8,29 @@
 
 .image-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     cursor: pointer;
     padding: 10px;
     margin: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.image-item img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.2s;
+}
+
+.image-item:hover img {
+    transform: scale(1.05);
+}
+
+.image-item p {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #333;
 }
 
 .modal {
@@ -35,18 +55,19 @@
     z-index: 1000;
 }
 
-.shirtStyle {
-    border: 2px solid blue;
+/* Category Styles */
+.shirtStyle img {
+    border: 5px solid red;
 }
 
-.pantsStyle {
-border: 2px solid green;
+.pantsStyle img {
+    border: 5px solid green;
 }
 
-.sweaterStyle {
-border: 2px solid orange;
+.sweaterStyle img {
+    border: 5px solid orange;
 }
 
-.defaultStyle {
-border: 2px solid gray; /* Default style if category is unknown or not specified */
+.defaultStyle img {
+    border: 5px solid gray; /* Default style if category is unknown or not specified */
 }

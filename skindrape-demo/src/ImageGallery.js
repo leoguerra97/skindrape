@@ -52,67 +52,65 @@ const ImageGallery = () => {
     const [modalIsOpen, setModalIsOpen] = useState(false);
 
     useEffect(() => {
-    const fetchImages = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/images');
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+        const fetchImages = async () => {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/images');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Received data:", data);
+
+                const updatedData = await Promise.all(data.map(async item => {
+                    // Extract the filename from the absolute path
+                    const imageName = item.image_path.split('/').pop();
+                    const responseName = item.response_path.split('/').pop();
+
+                    // Fetch the response for the image
+                    const response = await fetch(`http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`);
+                    const responseData = await response.json();
+
+                    // Parse the category from the response
+                    const category = parseCategory(responseData);
+
+                    return {
+                        ...item,
+                        image_path: `http://127.0.0.1:5000/images/${encodeURIComponent(imageName)}`,
+                        response_path: `http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`,
+                        category: category
+                    };
+                }));
+
+                setImages(updatedData);
+            } catch (error) {
+                console.error('Error fetching images:', error);
             }
-            const data = await response.json();
-            console.log("Received data:", data);
+        };
 
-            const updatedData = await Promise.all(data.map(async item => {
-                // Extract the filename from the absolute path
-                const imageName = item.image_path.split('/').pop();
-                const responseName = item.response_path.split('/').pop();
-
-                // Fetch the response for the image
-                const response = await fetch(`http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`);
-                const responseData = await response.json();
-
-                // Parse the category from the response
-                const category = parseCategory(responseData);
-
-                return {
-                    ...item,
-                    image_path: `http://127.0.0.1:5000/images/${encodeURIComponent(imageName)}`,
-                    response_path: `http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`,
-                    category: category
-                };
-            }));
-
-            setImages(updatedData);
-        } catch (error) {
-            console.error('Error fetching images:', error);
-        }
-    };
-
-    fetchImages();
+        fetchImages();
     }, []);
 
     const openModal = async (image) => {
+        try {
+            const response = await fetch(image.response_path);
 
+            console.log("Fetch response: ", response); // Log the full response
+            if (!response.ok) {
+                console.error('Failed to fetch image response:', response.statusText);
+                return;
+            }
+            const responseData = await response.json();
+            setSelectedResponse(responseData);
 
-    try {
-        const response = await fetch(image.response_path);
+            // Here, pass the responseData directly to parseCategory
+            image.category = parseCategory(responseData);
+            setSelectedImage(image);
 
-        console.log("Fetch response: ", response); // Log the full response
-        if (!response.ok) {
-            console.error('Failed to fetch image response:', response.statusText);
-            return;
+        } catch (error) {
+            console.error('Error fetching response data:', error);
         }
-        const responseData = await response.json();
-        setSelectedResponse(responseData);
-
-        // Here, pass the responseData directly to parseCategory
-        image.category = parseCategory(responseData);
-        setSelectedImage(image);
-
-    } catch (error) {
-        console.error('Error fetching response data:', error);
-    }
-    setModalIsOpen(true);
-    };
+        setModalIsOpen(true);
+        };
 
     const closeModal = () => {
         setModalIsOpen(false);
@@ -124,9 +122,13 @@ const ImageGallery = () => {
             <h2>Image Gallery</h2>
             <div className="image-grid">
                 {images.map((image, index) => (
-                    <div key={index} className={`image-item ${getCategoryStyle(image.category)}`} onClick={() => openModal(image)}>
-                        <img src={image.image_path} alt="Image" style={{ maxWidth: '50px', cursor: 'pointer' }} />
-                        <p>{image.image_name}</p> {/* Assuming image_name is the filename */}
+                    <div
+                        key={index}
+                        className={`image-item ${getCategoryStyle(image.category)}`}
+                        onClick={() => openModal(image)}
+                    >
+                        <img src={image.image_path} alt="Image" />
+                        <p>{image.image_name}</p>
                     </div>
                 ))}
             </div>
@@ -135,7 +137,6 @@ const ImageGallery = () => {
                 isOpen={modalIsOpen}
                 onRequestClose={closeModal}
                 contentLabel="Image Details"
-                // Add custom styling or className here
             >
                 <button onClick={closeModal}>Close</button>
                 {selectedImage && selectedResponse && (
@@ -150,5 +151,6 @@ const ImageGallery = () => {
         </div>
     );
 }
+
 
 export default ImageGallery;
