@@ -7,58 +7,60 @@ function formatText(text) {
 }
 
 const ImageUpload = () => {
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState('');
-    const [uploadResponse, setUploadResponse] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [uploadResponses, setUploadResponses] = useState([]);
     const [uploadStatus, setUploadStatus] = useState('');
     const [isLoading, setIsLoading] = useState(false); // State to manage loading status
-    const [apiContent, setApiContent] = useState(''); // State to store the content from the API response
-
+    const [apiContents, setApiContents] = useState([]); // State to store the content from the API response
 
     const handleFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
+        setSelectedFiles(Array.from(event.target.files));
         setUploadStatus('');
-        setUploadResponse(null);
+        setUploadResponses([]);
         setIsLoading(false);
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(event.target.files[0]);
+        const files = Array.from(event.target.files);
+        const filePreviews = files.map(file => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            return new Promise((resolve, reject) => {
+                reader.onloadend = () => {
+                    resolve(reader.result);
+                };
+                reader.onerror = reject;
+            });
+        });
+
+        Promise.all(filePreviews).then(previews => setImagePreviews(previews));
     };
 
     const handleUpload = async () => {
-        if (!selectedFile) {
+        if (!selectedFiles || selectedFiles.length === 0) {
             setUploadStatus('Please select a file to upload.');
             return;
         }
 
         setIsLoading(true); // Set loading to true
         const formData = new FormData();
-        formData.append('image', selectedFile);
+         selectedFiles.forEach((file, index) => {
+        formData.append('image', file);
+        });
 
         try {
-            console.log('Response request');
             const response = await fetch('http://127.0.0.1:5000/upload', {
                 method: 'POST',
                 body: formData,
             });
 
-        console.log('Response received:', response);
-
             if (response.ok) {
                 const result = await response.json();
                 setUploadStatus('Upload successful');
-                setUploadResponse(result);
+                setUploadResponses(result);
 
                 // Extract the 'content' part from the response
-                const content = result.response?.response?.choices[0]?.message?.content;
-                if (content) {
-                    setApiContent(content);
-                } else {
-                    setApiContent('No content available');
-                }
+                const contents = result.map(res => res.response?.response?.choices[0]?.message?.content || 'No content available');
+                setApiContents(contents);
 
             } else {
                 setUploadStatus('Upload failed.');
@@ -74,24 +76,24 @@ const ImageUpload = () => {
     return (
         <div>
             <h2>Image Upload</h2>
-            <input type="file" onChange={handleFileChange} />
+            <input type="file" onChange={handleFileChange} multiple />
             <button onClick={handleUpload}>Upload</button>
             {uploadStatus && <p>{uploadStatus}</p>}
             {isLoading && <p>Loading...</p>} {/* Loading Indicator */}
 
-            {imagePreview && (
-                <div>
+            {imagePreviews.map((preview, index) => (
+                <div key={index}>
                     <h3>Preview:</h3>
-                    <img src={imagePreview} alt="Preview" style={{ maxWidth: '300px' }} />
+                    <img src={preview} alt="Preview" style={{ maxWidth: '300px' }} />
                 </div>
-            )}
+            ))}
 
-            {apiContent && (
-                <div>
+            {apiContents.map((content, index) => (
+                <div key={index}>
                     <h3>Clothing Article Classification:</h3>
-                    <p>{formatText(apiContent)}</p>
+                    <p>{formatText(content)}</p>
                 </div>
-            )}
+            ))}
         </div>
     );
 };

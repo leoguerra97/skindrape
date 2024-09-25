@@ -18,30 +18,35 @@ else:
 net.eval()
 
 def configure_routes(app):
-
     @app.route('/upload', methods=['POST'])
     def upload_image():
-        if 'image' not in request.files:
+        # Get the list of files
+        image_files = request.files.getlist('image')  # Get the list of files
+
+        if not image_files:
             return jsonify({'error': 'No image provided'}), 400
 
-        image_file = request.files['image']
-        image_name = image_file.filename
-        image_path = create_unique_id_for_image(image_file)
-        # Save the image
-        image_file.save(image_path)
+        responses = []
+        for image_file in image_files:
+            image_name = image_file.filename
+            image_path = create_unique_id_for_image(image_file)
+            # Save the image
+            image_file.save(image_path)
 
-        # Segment the image step
-        segmented_image_path, segmented_image_name = segment_image(image_path, image_name, IMAGE_FOLDER, net)
+            # Segment the image step
+            segmented_image_path, segmented_image_name = segment_image(image_path, image_name, IMAGE_FOLDER, net)
 
-        # ChatGPT step
-        response, new_image_name = process_image(segmented_image_path, segmented_image_name)
+            # ChatGPT step
+            response, new_image_name = process_image(segmented_image_path, segmented_image_name)
 
-        # Rename the image based on the API response
-        #new_image_path = rename_image(image_path, new_image_name)
-        save_response(response, new_image_name)
+            # Rename the image based on the API response
+            # new_image_path = rename_image(image_path, new_image_name)
+            save_response(response, new_image_name)
 
-        return jsonify({'message': 'Image processed successfully', 'new_image_name': new_image_name, 'response': response}), 200
+            responses.append(
+                {'message': 'Image processed successfully', 'new_image_name': new_image_name, 'response': response})
 
+        return jsonify(responses), 200
 
     @app.route('/images', methods=['GET'])
     def list_images():

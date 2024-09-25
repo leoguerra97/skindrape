@@ -12,7 +12,7 @@ MODEL = "gpt-4-vision-preview"
 PROMPT = "Analyse the image of a clothing item. And characterise it in the following categories: " \
          "\nBRAND NAME (write brand name if known)" \
          "\nSEASON (fall/winter FW, spring/summer SS)" \
-         "\nCATEGORY (cardigan CA, sweatshirts FE, sweaters SW, t-shirts MA, polos PO, jackets GI, shirts CA, chinos CH, jeans JN, pants PN)" \
+         "\nCATEGORY (cardigan CA, sweatshirts FE, sweaters SW, t-shirts MA, polos PO, jackets GI, shirts CA, chinos CH, jeans JN, pants PN) - For this category only retun classification code" \
          "\nMATERIAL (cotton CO, silk S, elastane EL, linen LI, denim DN)" \
          "\nSTYLE (elegant EL, oversize O, sport S, loungewear LW)" \
          "\nCOLOR (orange OR, grey GR, black NE, blue BL, pink PI, red RE, white WH, brown BR, green VE, purple VI, multicolor MC, neutral tones TN)" \
