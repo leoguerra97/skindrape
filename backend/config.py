@@ -34,7 +34,7 @@ def load_secret_key(filename='./../config.json'):
     try:
         with open(filename, 'r') as file:
             config = json.load(file)
-            return config.get('secret_key')
+            return config.get('secret_key').strip()
     except FileNotFoundError:
         print(f"Configuration file '{filename}' not found.")
         return None
