@@ -7,7 +7,7 @@ import os
 IMAGE_FOLDER = os.path.join(os.getcwd(), '../image_storage')
 MODEL_PATH = "/Users/Leonardo/Desktop/Skindrape/skindrape/backend/IS_Net/saved_models/isnet-general-use.pth"
 
-MODEL = "gpt-4-vision-preview"
+MODEL = "gpt-4-vision-preview" # "gpt-4o"
 
 PROMPT = "Analyse the image of a clothing item. And characterise it in the following categories: " \
          "\nBRAND NAME (write brand name if known)" \
@@ -34,7 +34,7 @@ def load_secret_key(filename='./../config.json'):
     try:
         with open(filename, 'r') as file:
             config = json.load(file)
-            return config.get('secret_key')
+            return config.get('secret_key').strip()
     except FileNotFoundError:
         print(f"Configuration file '{filename}' not found.")
         return None

@@ -1,12 +1,27 @@
-import React, {useEffect, useState} from 'react';
-import Modal from 'react-modal';
-import './ImageGallery.css';
+// ImageGallery.js
 
-Modal.setAppElement('#root');
+import React, { useEffect, useState } from 'react';
+import {
+    Typography,
+    Grid,
+    Card,
+    CardActionArea,
+    CardMedia,
+    CardContent,
+    Modal,
+    Box,
+    Backdrop,
+    Fade,
+    CircularProgress,
+    Alert,
+} from '@mui/material';
+import LazyLoad from 'react-lazyload';
 
 function formatText(text) {
     return text.split('\n').map((line, index) => (
-        <p key={index}>{line}</p>
+        <Typography key={index} variant="body1">
+            {line}
+        </Typography>
     ));
 }
 
@@ -19,40 +34,37 @@ function parseCategory(responseData) {
     console.log("Category LINE: ", categoryLine);
 
     return categoryLine ? categoryLine.split(':')[1].trim() : 'Unknown';
-    /*
-    ### Notes:
-    1. **Performance Consideration**: The approach of fetching each image's response when rendering the gallery can be inefficient, especially if you have many images, as it will result in multiple network requests. Consider optimizing this by either pre-fetching this data or adjusting your backend to include category information in the `/images` endpoint response.
-    2. **Error Handling**: Ensure to handle any potential errors in network requests or parsing.
-    3. **Caching Responses**: If the category data doesn't change often, you might cache the responses or the parsed categories to improve performance.
-    4. **Asynchronous Data Fetching**: Since fetching the response text is asynchronous, make sure it aligns well with your component's rendering logic. You might need to manage loading states or default values appropriately.
-    By following these steps, you can effectively color or separate files in the image gallery based on their CATEGORY, enhancing the visual organization and user experience of your application.
-     */
 }
 
-function getCategoryStyle(category) {
-    switch (category) {
-        case 'T-Shirt' :
-            return 'shirtStyle'; // CSS class or style object
-        case 'FE':
-            return 'sweaterStyle';
-        case 'SW':
-            return 'pantsStyle';
+function getBorderColor(category) {
+    switch (category.toUpperCase()) {
         case 'CA':
-            return 'shirtStyle';
+            return 'red';
+        case 'SA':
+            return 'orange';
+        case 'SW':
+            return 'green';
+        case 'FE':
+            return 'blue';
+        case 'AC':
+            return 'purple';
+        // Add more categories as needed
         default:
-            return 'defaultStyle';
+            return 'gray';
     }
 }
-
 
 const ImageGallery = () => {
     const [images, setImages] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedResponse, setSelectedResponse] = useState(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchImages = async () => {
+            setIsLoading(true);
             try {
                 const response = await fetch('http://127.0.0.1:5000/images');
                 if (!response.ok) {
@@ -68,6 +80,10 @@ const ImageGallery = () => {
 
                     // Fetch the response for the image
                     const response = await fetch(`http://127.0.0.1:5000/responses/${encodeURIComponent(responseName)}`);
+                    if (!response.ok) {
+                        console.error('Failed to fetch image response:', response.statusText);
+                        return { ...item, category: 'Unknown' };
+                    }
                     const responseData = await response.json();
 
                     // Parse the category from the response
@@ -84,6 +100,9 @@ const ImageGallery = () => {
                 setImages(updatedData);
             } catch (error) {
                 console.error('Error fetching images:', error);
+                setError('Failed to fetch images. Please try again later.');
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -110,7 +129,7 @@ const ImageGallery = () => {
             console.error('Error fetching response data:', error);
         }
         setModalIsOpen(true);
-        };
+    };
 
     const closeModal = () => {
         setModalIsOpen(false);
@@ -118,39 +137,96 @@ const ImageGallery = () => {
     };
 
     return (
-        <div>
-            <h2>Image Gallery</h2>
-            <div className="image-grid">
-                {images.map((image, index) => (
-                    <div
-                        key={index}
-                        className={`image-item ${getCategoryStyle(image.category)}`}
-                        onClick={() => openModal(image)}
-                    >
-                        <img src={image.image_path} alt="Image" />
-                        <p>{image.image_name}</p>
-                    </div>
-                ))}
-            </div>
+        <Box>
+            <Typography variant="h4" gutterBottom>
+                Image Gallery
+            </Typography>
+
+            {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                    <CircularProgress />
+                </Box>
+            ) : error ? (
+                <Box sx={{ mt: 2 }}>
+                    <Alert severity="error">{error}</Alert>
+                </Box>
+            ) : (
+                <Grid container spacing={2}>
+                    {images.map((image, index) => (
+                        <Grid item xs={12} sm={6} md={3} key={index}>
+                            <Card
+                                sx={{
+                                    border: `5px solid ${getBorderColor(image.category)}`,
+                                }}
+                            >
+                                <CardActionArea onClick={() => openModal(image)}>
+                                    <LazyLoad height={200} offset={100} once>
+                                        <CardMedia
+                                            component="img"
+                                            image={image.image_path}
+                                            alt={image.image_name}
+                                            sx={{
+                                                width: '100%',
+                                                height: 'auto',
+                                            }}
+                                        />
+                                    </LazyLoad>
+                                    <CardContent>
+                                        <Typography variant="body2" color="textSecondary">
+                                            {image.image_name}
+                                        </Typography>
+                                    </CardContent>
+                                </CardActionArea>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
 
             <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={closeModal}
-                contentLabel="Image Details"
+                open={modalIsOpen}
+                onClose={closeModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                }}
             >
-                <button onClick={closeModal}>Close</button>
-                {selectedImage && selectedResponse && (
-                    <div>
-                        <img src={selectedImage.image_path} alt="Selected" style={{ maxWidth: '300px' }} />
-                        <div className="response">
-                            {formatText(selectedResponse.response.choices[0].message.content)}
-                        </div>
-                    </div>
-                )}
+                <Fade in={modalIsOpen}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '90%',
+                            maxWidth: 600,
+                            maxHeight: '90vh',
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 4,
+                            overflowY: 'auto',
+                        }}
+                    >
+                        {selectedImage && selectedResponse && (
+                            <>
+                                <img
+                                    src={selectedImage.image_path}
+                                    alt="Selected"
+                                    style={{ width: '100%', height: 'auto' }}
+                                />
+                                <Box sx={{ mt: 2 }}>
+                                    {formatText(
+                                        selectedResponse.response.choices[0].message.content
+                                    )}
+                                </Box>
+                            </>
+                        )}
+                    </Box>
+                </Fade>
             </Modal>
-        </div>
+        </Box>
     );
-}
-
+};
 
 export default ImageGallery;

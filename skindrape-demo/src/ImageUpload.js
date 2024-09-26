@@ -1,8 +1,22 @@
+// ImageUpload.js
+
 import React, { useState } from 'react';
+import {
+    Typography,
+    Button,
+    LinearProgress,
+    Box,
+    Paper,
+    Grid,
+    Alert,
+} from '@mui/material';
+import { CloudUpload } from '@mui/icons-material';
 
 function formatText(text) {
     return text.split('\n').map((line, index) => (
-        <p key={index}>{line}</p>
+        <Typography key={index} variant="body1">
+            {line}
+        </Typography>
     ));
 }
 
@@ -43,8 +57,8 @@ const ImageUpload = () => {
 
         setIsLoading(true); // Set loading to true
         const formData = new FormData();
-         selectedFiles.forEach((file, index) => {
-        formData.append('image', file);
+        selectedFiles.forEach((file) => {
+            formData.append('image', file);
         });
 
         try {
@@ -63,38 +77,79 @@ const ImageUpload = () => {
                 setApiContents(contents);
 
             } else {
-                setUploadStatus('Upload failed.');
+                const errorText = await response.text();
+                setUploadStatus(`Upload failed: ${errorText}`);
             }
         } catch (error) {
             console.error('Error:', error);
-            setUploadStatus('Upload failed.');
+            setUploadStatus(`Upload failed: ${error.message}`);
         } finally {
             setIsLoading(false); // Set loading to false regardless of the outcome
         }
     };
 
-    return  (
-        <div>
-            <h2>Image Upload</h2>
-            <input type="file" onChange={handleFileChange} multiple />
-            <button onClick={handleUpload}>Upload</button>
-            {uploadStatus && <p>{uploadStatus}</p>}
-            {isLoading && <p>Loading...</p>}
+    return (
+        <Box>
+            <Typography variant="h4" gutterBottom>
+                Image Upload
+            </Typography>
 
-            {imagePreviews.map((preview, index) => (
-                <div key={index}>
-                    <h3>Preview:</h3>
-                    <img src={preview} alt="Preview" style={{ maxWidth: '300px' }} />
-                </div>
-            ))}
+            <Box>
+                <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="upload-button"
+                    multiple
+                    type="file"
+                    onChange={handleFileChange}
+                />
+                <label htmlFor="upload-button">
+                    <Button
+                        variant="contained"
+                        component="span"
+                        startIcon={<CloudUpload />}
+                    >
+                        Select Images
+                    </Button>
+                </label>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpload}
+                    sx={{ ml: 2 }}
+                    disabled={isLoading || selectedFiles.length === 0}
+                >
+                    Upload
+                </Button>
+            </Box>
+
+            {uploadStatus && (
+                <Box sx={{ mt: 2 }}>
+                    <Alert severity={uploadStatus.startsWith('Upload successful') ? 'success' : 'error'}>
+                        {uploadStatus}
+                    </Alert>
+                </Box>
+            )}
+            {isLoading && <LinearProgress sx={{ mt: 2 }} />}
+
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+                {imagePreviews.map((preview, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6">Preview:</Typography>
+                            <img src={preview} alt="Preview" style={{ width: '100%', height: 'auto' }} />
+                        </Paper>
+                    </Grid>
+                ))}
+            </Grid>
 
             {apiContents.map((content, index) => (
-                <div key={index}>
-                    <h3>Clothing Article Classification:</h3>
+                <Box key={index} sx={{ mt: 2 }}>
+                    <Typography variant="h6">Classification:</Typography>
                     {formatText(content)}
-                </div>
+                </Box>
             ))}
-        </div>
+        </Box>
     );
 };
 

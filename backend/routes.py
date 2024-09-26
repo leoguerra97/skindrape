@@ -6,6 +6,8 @@ from segment import segment_image
 from IS_Net.models.isnet import ISNetDIS
 import torch
 import os
+from config import API_KEY
+
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 
 net = ISNetDIS()
