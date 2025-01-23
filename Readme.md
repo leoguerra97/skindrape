@@ -2,7 +2,8 @@
 
 ## Project Description
 
-(Provide a brief description of your project here)
+This is a demo project of aimage processing Pipeline which has the objective of transforming an input clothing garmentimage into a complete site ready format.
+The image is processed by a finetuned NN model that smentsit to isolate the garment from it's background, then the image is analyzd using OpenAI's api to extract a valid data format and classification, as well as producing a site ready enticing description of the image.
 
 ## Prerequisites
 
